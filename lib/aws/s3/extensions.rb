@@ -48,7 +48,7 @@ class String
   end unless public_method_defined? :underscore
 
   def utf8?
-    scan(/[^\x00-\xa0]/u) { |s| s.unpack('U') }
+    scan(/[^\x00-\u00a0]/u) { |s| s.unpack('U') }
     true
   rescue ArgumentError
     false
