@@ -68,7 +68,7 @@ module AWS
           memoized :canonical_string
     
           def encoded_canonical
-            digest   = OpenSSL::Digest::Digest.new('sha1')
+            digest   = OpenSSL::Digest.new('sha1')
             b64_hmac = Base64.encode64(OpenSSL::HMAC.digest(digest, secret_access_key, canonical_string)).strip
             url_encode? ? CGI.escape(b64_hmac) : b64_hmac
           end
