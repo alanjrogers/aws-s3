@@ -526,7 +526,7 @@ module AWS
         #   bucket.acl(bucket.acl)
         def acl(reload = false)
           policy = reload.is_a?(ACL::Policy) ? reload : nil
-          memoize(reload) do
+          expirable_memoize(reload) do
             self.class.acl(name, policy) if policy
             self.class.acl(name)
           end
@@ -577,7 +577,7 @@ module AWS
         #   object.acl(object.acl)
         def acl(reload = false)
           policy = reload.is_a?(ACL::Policy) ? reload : nil
-          memoize(reload) do
+          expirable_memoize(reload) do
             self.class.acl(key, bucket.name, policy) if policy
             self.class.acl(key, bucket.name)
           end

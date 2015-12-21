@@ -27,7 +27,7 @@ end
 
 class String
   def previous!
-    self[-1] -= 1
+    self[-1] = (self[-1].ord - 1).chr
     self
   end
   
@@ -101,13 +101,14 @@ class Symbol
   end
 end
 
-module Kernel
-  def __method__(depth = 0)
-    caller[depth][/`([^']+)'/, 1]
-  end if RUBY_VERSION < '1.9'
+module Kernel  
+  def __called_from__
+    caller[1][/`([^']+)'/, 1]
+  end
   
-  def memoize(reload = false, storage = nil)
-    storage = "@#{storage || __method__(1)}"
+  def expirable_memoize(reload = false, storage = nil)
+    current_method = __called_from__
+    storage = "@#{storage || current_method}"
     if reload 
       instance_variable_set(storage, nil)
     else
@@ -118,7 +119,8 @@ module Kernel
     instance_variable_set(storage, yield)
   end
 
-  def require_library_or_gem(library)
+  def require_library_or_gem(library, gem_name = nil)
+    gem(gem_name || library, '>=0')
     require library
   rescue LoadError => library_not_installed
     begin
@@ -143,7 +145,7 @@ class Module
     alias_method original_method, method_name
     module_eval(<<-EVAL, __FILE__, __LINE__)
       def #{method_name}(reload = false, *args, &block)
-        memoize(reload) do
+        expirable_memoize(reload) do
           send(:#{original_method}, *args, &block)
         end
       end

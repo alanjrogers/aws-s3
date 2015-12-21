@@ -144,13 +144,13 @@ end
 class ModuleExtensionsTest < Test::Unit::TestCase
   class Foo
     def foo(reload = false)
-      memoize(reload) do
+      expirable_memoize(reload) do
         Time.now
       end
     end
     
     def bar(reload = false)
-      memoize(reload, :baz) do
+      expirable_memoize(reload, :baz) do
         Time.now
       end
     end
