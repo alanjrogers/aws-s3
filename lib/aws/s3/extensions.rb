@@ -46,20 +46,37 @@ class String
     gsub(/([a-z\d])([A-Z])/,'\1_\2').
     downcase
   end unless public_method_defined? :underscore
-
-  def utf8?
-    scan(/[^\x00-\u00a0]/u) { |s| s.unpack('U') }
-    true
-  rescue ArgumentError
-    false
+  
+  if RUBY_VERSION >= '1.9'
+   def utf8?
+     dup.force_encoding('UTF-8').valid_encoding?
+   end
+  else
+   def utf8?
+     scan(Regexp.new('[^\x00-\xa0]', nil, 'u')) { |s| s.unpack('U') }
+     true
+   rescue ArgumentError
+     false
+   end
   end
   
   # All paths in in S3 have to be valid unicode so this takes care of 
-  # cleaning up any strings that aren't valid utf-8 according to String#utf8?
-  def remove_extended!
-    gsub!(/[\x80-\xFF]/) { "%02X" % $&[0] }
+  # cleaning up any strings that aren't valid utf-8 according to String#valid_utf8?
+  if RUBY_VERSION >= '1.9'
+    def remove_extended!
+      sanitized_string = ''
+      each_byte do |byte|
+        character = byte.chr
+        sanitized_string << character if character.ascii_only?
+      end
+      sanitized_string
+    end
+  else
+    def remove_extended!
+      gsub!(/[\x80-\xFF]/) { "%02X" % $&[0] }
+    end
   end
-  
+
   def remove_extended
     dup.remove_extended!
   end
