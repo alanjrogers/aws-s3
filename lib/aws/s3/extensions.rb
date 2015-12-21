@@ -47,34 +47,19 @@ class String
     downcase
   end unless public_method_defined? :underscore
   
-  if RUBY_VERSION >= '1.9'
-   def utf8?
-     dup.force_encoding('UTF-8').valid_encoding?
-   end
-  else
-   def utf8?
-     scan(Regexp.new('[^\x00-\xa0]', nil, 'u')) { |s| s.unpack('U') }
-     true
-   rescue ArgumentError
-     false
-   end
+  def utf8?
+   dup.force_encoding('UTF-8').valid_encoding?
   end
   
   # All paths in in S3 have to be valid unicode so this takes care of 
   # cleaning up any strings that aren't valid utf-8 according to String#valid_utf8?
-  if RUBY_VERSION >= '1.9'
-    def remove_extended!
-      sanitized_string = ''
-      each_byte do |byte|
-        character = byte.chr
-        sanitized_string << character if character.ascii_only?
-      end
-      sanitized_string
+  def remove_extended!
+    sanitized_string = ''
+    each_byte do |byte|
+      character = byte.chr
+      sanitized_string << character if character.ascii_only?
     end
-  else
-    def remove_extended!
-      gsub!(/[\x80-\xFF]/) { "%02X" % $&[0] }
-    end
+    sanitized_string
   end
 
   def remove_extended
